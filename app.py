@@ -1,56 +1,90 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import numpy as np
+from sklearn.preprocessing import StandardScaler
+import joblib
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
-# TODO: Import your ML model here
-# Example:
-# from joblib import load
-# model = load('your_model.joblib')
+# TODO: Train and save your model using the stroke dataset
+# Example workflow:
+# 1. Load stroke dataset (e.g., from Kaggle)
+# 2. Preprocess data (handle missing values, encode categorical variables)
+# 3. Train model (e.g., RandomForestClassifier)
+# 4. Save model using joblib:
+#    joblib.dump(model, 'stroke_model.joblib')
+#    joblib.dump(scaler, 'scaler.joblib')
+
+# Placeholder for model loading
+# model = joblib.load('stroke_model.joblib')
+# scaler = joblib.load('scaler.joblib')
+
+def preprocess_features(data):
+    """Preprocess input features to match model requirements."""
+    # Convert categorical variables to numeric
+    gender_map = {'male': 0, 'female': 1, 'other': 2}
+    smoking_map = {'never': 0, 'former': 1, 'current': 2}
+    work_map = {'private': 0, 'self-employed': 1, 'government': 2, 'student': 3, 'retired': 4}
+    residence_map = {'urban': 1, 'rural': 0}
+    
+    features = np.array([
+        float(data['age']),
+        gender_map.get(data['gender'], 0),
+        1 if data['heartDisease'] == 'yes' else 0,
+        1 if data['hypertension'] == 'yes' else 0,
+        float(data['glucoseLevel']),
+        float(data['bmi']),
+        residence_map.get(data['residenceType'], 0),
+        smoking_map.get(data['smokingStatus'], 0),
+        work_map.get(data['workType'], 0)
+    ]).reshape(1, -1)
+    
+    return features
 
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
         data = request.json
+        features = preprocess_features(data)
         
-        # Extract features from the request
-        features = {
-            'age': float(data['age']),
-            'gender': data['gender'],
-            'maritalStatus': data['maritalStatus'],
-            'heartDisease': data['heartDisease'] == 'yes',
-            'hypertension': data['hypertension'] == 'yes',
-            'glucoseLevel': float(data['glucoseLevel']),
-            'bmi': float(data['bmi']),
-            'residenceType': data['residenceType'],
-            'smokingStatus': data['smokingStatus'],
-            'workType': data['workType']
-        }
+        # TODO: Once you have your trained model, uncomment and modify these lines
+        # scaled_features = scaler.transform(features)
+        # prediction_proba = model.predict_proba(scaled_features)[0][1]
+        # risk_score = float(prediction_proba * 100)
         
-        # TODO: Preprocess your features and make prediction with your model
-        # Example:
-        # prediction = model.predict([list_of_features])
-        
-        # For demonstration, returning mock prediction
+        # For demonstration, using mock prediction
         mock_risk_score = np.random.randint(0, 100)
+        risk_score = float(mock_risk_score)
         
         # Determine risk level based on score
-        risk_level = "Low" if mock_risk_score < 33 else "Moderate" if mock_risk_score < 66 else "High"
-        
-        # Generate recommendations based on risk level
-        recommendations = [
-            "Maintain a healthy diet and exercise regularly",
-            "Monitor your blood pressure and glucose levels",
-            "Schedule regular check-ups with your healthcare provider"
-        ]
-        
-        if mock_risk_score > 50:
-            recommendations.append("Consider consulting a specialist for detailed evaluation")
+        if risk_score < 33:
+            risk_level = "Low"
+            recommendations = [
+                "Maintain a healthy lifestyle with regular exercise",
+                "Continue with routine health check-ups",
+                "Keep monitoring blood pressure and glucose levels"
+            ]
+        elif risk_score < 66:
+            risk_level = "Moderate"
+            recommendations = [
+                "Increase physical activity to at least 150 minutes per week",
+                "Monitor blood pressure and glucose levels more frequently",
+                "Consider dietary modifications to reduce stroke risk",
+                "Schedule regular check-ups with your healthcare provider"
+            ]
+        else:
+            risk_level = "High"
+            recommendations = [
+                "Consult with a healthcare provider immediately",
+                "Monitor blood pressure and glucose levels daily",
+                "Make immediate lifestyle changes including diet and exercise",
+                "Consider medication review with your doctor",
+                "Develop an emergency action plan with your healthcare team"
+            ]
         
         return jsonify({
-            'riskScore': float(mock_risk_score),
+            'riskScore': risk_score,
             'riskLevel': risk_level,
             'recommendations': recommendations
         })
