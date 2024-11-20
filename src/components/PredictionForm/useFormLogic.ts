@@ -30,9 +30,14 @@ export const useFormLogic = () => {
     setIsLoading(true);
 
     try {
+      // Log the connection attempt and form data
       console.log("Attempting to connect to ML server at:", API_URL + ENDPOINTS.predict);
-      console.log("Submitting form data:", formData);
-      
+      console.log("Form data being submitted:", formData);
+
+      // Test server connectivity
+      const testResponse = await fetch(API_URL);
+      console.log("Server connectivity test response:", testResponse.ok);
+
       const response = await fetch(`${API_URL}${ENDPOINTS.predict}`, {
         method: "POST",
         headers: {
@@ -41,20 +46,35 @@ export const useFormLogic = () => {
         body: JSON.stringify(formData),
       });
 
+      console.log("Response status:", response.status);
+
       if (!response.ok) {
-        throw new Error(`Server responded with status: ${response.status}`);
+        const errorText = await response.text();
+        console.error("Server error response:", errorText);
+        throw new Error(`Server error: ${response.status} - ${errorText}`);
       }
 
       const result = await response.json();
-      console.log("Received prediction result:", result);
+      console.log("Prediction result:", result);
 
       localStorage.setItem("predictionResult", JSON.stringify(result));
       navigate("/results");
     } catch (error) {
-      console.error("Error details:", error);
+      console.error("Detailed error information:", error);
+      
+      // More specific error messages based on error type
+      let errorMessage = "Failed to process your health assessment. ";
+      if (!navigator.onLine) {
+        errorMessage += "Please check your internet connection.";
+      } else if (error instanceof TypeError && error.message.includes("Failed to fetch")) {
+        errorMessage += "Unable to connect to the ML server. Please ensure the server is running at " + API_URL;
+      } else {
+        errorMessage += "Please ensure the ML server is running and try again.";
+      }
+
       toast({
         title: "Error",
-        description: "Failed to process your health assessment. Please ensure the ML server is running and try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
