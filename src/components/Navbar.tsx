@@ -9,7 +9,13 @@ export const Navbar = () => {
         <Link to="/" className="hover:opacity-80 transition-opacity">
           <Logo />
         </Link>
-        <div className="flex gap-4">
+        <div className="flex items-center gap-4">
+          <Link to="/about">
+            <Button variant="ghost">About Us</Button>
+          </Link>
+          <Link to="/contact">
+            <Button variant="ghost">Contact</Button>
+          </Link>
           <Link to="/auth?mode=login">
             <Button variant="ghost">Login</Button>
           </Link>

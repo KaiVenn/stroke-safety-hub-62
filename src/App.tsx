@@ -8,6 +8,8 @@ import Auth from "./pages/Auth";
 import PredictionForm from "./pages/PredictionForm";
 import Results from "./pages/Results";
 import Dashboard from "./pages/Dashboard";
+import AboutUs from "./pages/AboutUs";
+import ContactUs from "./pages/ContactUs";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +25,8 @@ const App = () => (
           <Route path="/predict" element={<PredictionForm />} />
           <Route path="/results" element={<Results />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/contact" element={<ContactUs />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
