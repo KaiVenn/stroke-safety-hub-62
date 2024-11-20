@@ -10,6 +10,7 @@ import Results from "./pages/Results";
 import Dashboard from "./pages/Dashboard";
 import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs";
+import Information from "./pages/Information";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/contact" element={<ContactUs />} />
+          <Route path="/information" element={<Information />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
