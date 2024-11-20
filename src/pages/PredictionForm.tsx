@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Navbar } from "@/components/Navbar";
 import { Card } from "@/components/ui/card";
+import { HelpCircle } from "lucide-react";
 
 const PredictionForm = () => {
   const navigate = useNavigate();
@@ -38,7 +39,16 @@ const PredictionForm = () => {
       <Navbar />
       <div className="container mx-auto px-4 py-8">
         <Card className="max-w-2xl mx-auto p-8">
-          <h1 className="text-2xl font-bold mb-6">Health Assessment Form</h1>
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold">Health Assessment Form</h1>
+            <Link 
+              to="/information" 
+              className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors"
+            >
+              <HelpCircle className="h-5 w-5" />
+              <span>Confused? Click here for help</span>
+            </Link>
+          </div>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
