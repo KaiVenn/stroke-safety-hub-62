@@ -6,9 +6,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Navbar } from "@/components/Navbar";
 import { Card } from "@/components/ui/card";
 import { HelpCircle } from "lucide-react";
+import { API_URL, ENDPOINTS } from "@/config/api";
+import { useToast } from "@/components/ui/use-toast";
 
 const PredictionForm = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     age: "",
@@ -23,11 +27,42 @@ const PredictionForm = () => {
     workType: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement form submission logic
-    console.log("Form submitted:", formData);
-    navigate("/results");
+    setIsLoading(true);
+
+    try {
+      console.log("Submitting form data to ML model:", formData);
+      
+      const response = await fetch(`${API_URL}${ENDPOINTS.predict}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to get prediction");
+      }
+
+      const result = await response.json();
+      console.log("Received prediction result:", result);
+
+      // Store the result in localStorage to access it in the Results page
+      localStorage.setItem("predictionResult", JSON.stringify(result));
+      
+      navigate("/results");
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast({
+        title: "Error",
+        description: "Failed to process your health assessment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleChange = (field: string, value: string) => {
@@ -177,7 +212,9 @@ const PredictionForm = () => {
                 </Select>
               </div>
             </div>
-            <Button type="submit" className="w-full">Submit Assessment</Button>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Processing..." : "Submit Assessment"}
+            </Button>
           </form>
         </Card>
       </div>
