@@ -2,23 +2,57 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import numpy as np
 from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
 import joblib
+import pandas as pd
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app)
 
-# TODO: Train and save your model using the stroke dataset
-# Example workflow:
-# 1. Load stroke dataset (e.g., from Kaggle)
-# 2. Preprocess data (handle missing values, encode categorical variables)
-# 3. Train model (e.g., RandomForestClassifier)
-# 4. Save model using joblib:
-#    joblib.dump(model, 'stroke_model.joblib')
-#    joblib.dump(scaler, 'scaler.joblib')
+# Load and train the model when the server starts
+def train_model():
+    # Load sample stroke dataset (you should replace this with your actual dataset)
+    data = pd.DataFrame({
+        'age': np.random.uniform(20, 80, 1000),
+        'gender': np.random.choice([0, 1, 2], 1000),
+        'heart_disease': np.random.choice([0, 1], 1000),
+        'hypertension': np.random.choice([0, 1], 1000),
+        'glucose_level': np.random.uniform(70, 200, 1000),
+        'bmi': np.random.uniform(18, 40, 1000),
+        'residence_type': np.random.choice([0, 1], 1000),
+        'smoking_status': np.random.choice([0, 1, 2], 1000),
+        'work_type': np.random.choice([0, 1, 2, 3, 4], 1000),
+    })
+    
+    # Create target variable (stroke risk) based on features
+    data['stroke_risk'] = (
+        (data['age'] > 60).astype(int) * 2 +
+        (data['heart_disease'] == 1).astype(int) * 2 +
+        (data['hypertension'] == 1).astype(int) * 2 +
+        (data['glucose_level'] > 140).astype(int) +
+        (data['bmi'] > 30).astype(int) +
+        (data['smoking_status'] == 2).astype(int)
+    ) / 10  # Normalize to 0-1 range
 
-# Placeholder for model loading
-# model = joblib.load('stroke_model.joblib')
-# scaler = joblib.load('scaler.joblib')
+    # Prepare features for training
+    X = data.drop('stroke_risk', axis=1)
+    y = data['stroke_risk']
+
+    # Initialize and train the model
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    scaler = StandardScaler()
+    
+    X_scaled = scaler.fit_transform(X)
+    model.fit(X_scaled, y)
+
+    # Save the model and scaler
+    joblib.dump(model, 'stroke_model.joblib')
+    joblib.dump(scaler, 'scaler.joblib')
+    
+    return model, scaler
+
+# Train and load the model and scaler
+model, scaler = train_model()
 
 def preprocess_features(data):
     """Preprocess input features to match model requirements."""
@@ -46,16 +80,22 @@ def preprocess_features(data):
 def predict():
     try:
         data = request.json
+        print("Received data:", data)  # Debug log
+        
         features = preprocess_features(data)
+        print("Preprocessed features:", features)  # Debug log
         
-        # TODO: Once you have your trained model, uncomment and modify these lines
-        # scaled_features = scaler.transform(features)
-        # prediction_proba = model.predict_proba(scaled_features)[0][1]
-        # risk_score = float(prediction_proba * 100)
+        # Scale features using the same scaler used during training
+        scaled_features = scaler.transform(features)
+        print("Scaled features:", scaled_features)  # Debug log
         
-        # For demonstration, using mock prediction
-        mock_risk_score = np.random.randint(0, 100)
-        risk_score = float(mock_risk_score)
+        # Get prediction probability
+        prediction = model.predict(scaled_features)[0]
+        print("Raw prediction:", prediction)  # Debug log
+        
+        # Convert to percentage (0-100)
+        risk_score = float(prediction * 100)
+        print("Risk score:", risk_score)  # Debug log
         
         # Determine risk level based on score
         if risk_score < 33:
@@ -83,13 +123,17 @@ def predict():
                 "Develop an emergency action plan with your healthcare team"
             ]
         
-        return jsonify({
+        response = {
             'riskScore': risk_score,
             'riskLevel': risk_level,
             'recommendations': recommendations
-        })
+        }
+        print("Sending response:", response)  # Debug log
+        
+        return jsonify(response)
         
     except Exception as e:
+        print("Error occurred:", str(e))  # Debug log
         return jsonify({'error': str(e)}), 400
 
 if __name__ == '__main__':
