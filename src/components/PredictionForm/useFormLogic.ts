@@ -30,13 +30,8 @@ export const useFormLogic = () => {
     setIsLoading(true);
 
     try {
-      // Log the connection attempt and form data
-      console.log("Attempting to connect to ML server at:", API_URL + ENDPOINTS.predict);
+      console.log("Attempting to submit prediction request to:", API_URL + ENDPOINTS.predict);
       console.log("Form data being submitted:", formData);
-
-      // Test server connectivity
-      const testResponse = await fetch(API_URL);
-      console.log("Server connectivity test response:", testResponse.ok);
 
       const response = await fetch(`${API_URL}${ENDPOINTS.predict}`, {
         method: "POST",
@@ -62,14 +57,11 @@ export const useFormLogic = () => {
     } catch (error) {
       console.error("Detailed error information:", error);
       
-      // More specific error messages based on error type
       let errorMessage = "Failed to process your health assessment. ";
       if (!navigator.onLine) {
         errorMessage += "Please check your internet connection.";
-      } else if (error instanceof TypeError && error.message.includes("Failed to fetch")) {
-        errorMessage += "Unable to connect to the ML server. Please ensure the server is running at " + API_URL;
       } else {
-        errorMessage += "Please ensure the ML server is running and try again.";
+        errorMessage += "Please ensure the ML server is running at " + API_URL + " and try again.";
       }
 
       toast({
