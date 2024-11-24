@@ -5,8 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { AlertTriangle, CheckCircle, Activity, Heart, Brain } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 
 interface PredictionResult {
   riskScore: number;
@@ -134,16 +133,14 @@ const Results = () => {
               </CardHeader>
               <CardContent>
                 <div className="h-[200px]">
-                  <ChartContainer config={{}}>
+                  <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData}>
                       <XAxis dataKey="name" />
                       <YAxis />
+                      <Tooltip />
                       <Bar dataKey="value" fill="#7C3AED" />
-                      <ChartTooltip>
-                        <ChartTooltipContent />
-                      </ChartTooltip>
                     </BarChart>
-                  </ChartContainer>
+                  </ResponsiveContainer>
                 </div>
               </CardContent>
             </Card>
